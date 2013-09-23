@@ -157,7 +157,7 @@ class PdfDocument
     /**
      * Request used memory manager
      *
-     * @return Zend\Memory\MemoryManager
+     * @return \Zend\Memory\MemoryManager
      */
     public static function getMemoryManager()
     {
@@ -171,7 +171,7 @@ class PdfDocument
     /**
      * Set user defined memory manager
      *
-     * @param Zend\Memory\MemoryManager $memoryManager
+     * @param \Zend\Memory\MemoryManager $memoryManager
      */
     public static function setMemoryManager(Memory\MemoryManager $memoryManager)
     {
@@ -235,12 +235,13 @@ class PdfDocument
      * from a file.
 
      * $revision used to roll back document to specified version
-     * (0 - currtent version, 1 - previous version, 2 - ...)
+     * (0 - current version, 1 - previous version, 2 - ...)
      *
-     * @param string  $source - PDF file to load
-     * @param integer $revision
-     * @throws \ZendPdf\Exception\ExceptionInterface
+     * @param string|null  $source - PDF file to load
+     * @param integer|null $revision
+     * @param bool $load
      * @return \ZendPdf\PdfDocument
+     * @throws \ZendPdf\Exception\ExceptionInterface
      */
     public function __construct($source = null, $revision = null, $load = false)
     {
@@ -376,6 +377,7 @@ class PdfDocument
      *
      * @param \ZendPdf\InternalType\IndirectObjectReference $pages
      * @param array|null $attributes
+     * @throws \ZendPdf\Exception\ExceptionInterface
      */
     protected function _loadPages(InternalType\IndirectObjectReference $pages, $attributes = array())
     {
@@ -458,6 +460,7 @@ class PdfDocument
      * Load outlines recursively
      *
      * @param \ZendPdf\InternalType\IndirectObjectReference $root Document catalog entry
+     * @throws \ZendPdf\Exception\ExceptionInterface
      */
     protected function _loadOutlines(InternalType\IndirectObjectReference $root)
     {
@@ -497,7 +500,7 @@ class PdfDocument
     /**
      * Organize pages to the pages tree structure.
      *
-     * @todo atomatically attach page to the document, if it's not done yet.
+     * @todo automatically attach page to the document, if it's not done yet.
      * @todo check, that page is attached to the current document
      *
      * @todo Dump pages as a balanced tree instead of a plain set.
@@ -780,7 +783,7 @@ class PdfDocument
      * \ZendPdf\Action\AbstractAction object
      *
      * @param \ZendPdf\InternalStructure\NavigationTarget $openAction
-     * @returns Zend_PDF
+     * @return \ZendPdf\PdfDocument
      */
     public function setOpenAction(InternalStructure\NavigationTarget $openAction = null)
     {
@@ -852,7 +855,7 @@ class PdfDocument
      * Pages collection hash:
      * <page dictionary object hash id> => \ZendPdf\Page
      *
-     * @var SplObjectStorage
+     * @var \SplObjectStorage
      */
     protected $_pageReferences = null;
 
@@ -889,11 +892,11 @@ class PdfDocument
      * Returns \ZendPdf\Page page object or null if destination is not found within PDF document.
      *
      * @param \ZendPdf\Destination\AbstractDestination $destination  Destination to resolve
-     * @param boolean $refreshPagesHash  Refresh page collection hashes before processing
-     * @return \ZendPdf\Page|null
+     * @param boolean $refreshPageCollectionHashes Refresh page collection hashes before processing
+	 * @return \ZendPdf\Page|null
      * @throws \ZendPdf\Exception\ExceptionInterface
      */
-    public function resolveDestination(Destination\AbstractDestination $destination, $refreshPageCollectionHashes = true)
+	public function resolveDestination(Destination\AbstractDestination $destination, $refreshPageCollectionHashes = true)
     {
         if ($this->_pageReferences === null  ||  $refreshPageCollectionHashes) {
             $this->_refreshPagesHash();
@@ -946,8 +949,8 @@ class PdfDocument
      * @todo Give appropriate name and make method public
      *
      * @param \ZendPdf\Action\AbstractAction $action
-     * @param boolean $refreshPagesHash  Refresh page collection hashes before processing
-     * @return \ZendPdf\Action\AbstractAction|null
+     * @param boolean $refreshPageCollectionHashes Refresh page collection hashes before processing
+	 * @return \ZendPdf\Action\AbstractAction|null
      */
     protected function _cleanUpAction(Action\AbstractAction $action, $refreshPageCollectionHashes = true)
     {
@@ -1038,7 +1041,8 @@ class PdfDocument
      *
      * $fontName should be specified in UTF-8 encoding
      *
-     * @return \ZendPdf\Resource\Font\Extracted|null
+     * @param \ZendPdf\Resource\Font\AbstractFont $fontName
+	 * @return \ZendPdf\Resource\Font\Extracted|null
      * @throws \ZendPdf\Exception\ExceptionInterface
      */
     public function extractFont($fontName)
