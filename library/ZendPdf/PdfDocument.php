@@ -20,7 +20,7 @@ use ZendPdf\Exception;
  * Class is used to create new PDF document or load existing document.
  * See details in a class constructor description
  *
- * Class agregates document level properties and entities (pages, bookmarks,
+ * Class aggregates document level properties and entities (pages, bookmarks,
  * document level actions, attachments, form object, etc)
  *
  * @category   Zend
@@ -830,12 +830,13 @@ class PdfDocument
         }
     }
 
-    /**
-     * Set specified named destination
-     *
-     * @param string $name
-     * @param \ZendPdf\Destination\AbstractExplicitDestination|\ZendPdf\Action\GoToAction $target
-     */
+	/**
+	 * Set specified named destination
+	 *
+	 * @param string                                                                           $name
+	 * @param \ZendPdf\Destination\AbstractExplicitDestination|\ZendPdf\Action\GoToAction|null $destination
+	 * @throws \ZendPdf\Exception\ExceptionInterface
+	 */
     public function setNamedDestination($name, $destination = null)
     {
         if ($destination !== null  &&
