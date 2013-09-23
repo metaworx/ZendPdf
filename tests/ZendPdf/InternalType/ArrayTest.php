@@ -88,34 +88,24 @@ class ArrayTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($arrayObj->toString(), '[false 100.426 /MyName (some text) ]');
     }
 
-    /**
-     * @todo \ZendPdf\InternalType\ArrayObject::add() does not exist
-     */
-    /*
     public function testAdd()
     {
-        $arrayObj = new \ZendPdf\InternalType\ArrayObject($srcArray);
-        $arrayObj->add(new \ZendPdf\InternalType\BooleanObject(false));
-        $arrayObj->add(new \ZendPdf\InternalType\NumericObject(100.426));
-        $arrayObj->add(new \ZendPdf\InternalType\NameObject('MyName'));
-        $arrayObj->add(new \ZendPdf\InternalType\StringObject('some text'));
+        $arrayObj = new InternalType\ArrayObject();
+        $arrayObj->add(new InternalType\BooleanObject(false));
+        $arrayObj->add(new InternalType\NumericObject(100.426));
+        $arrayObj->add(new InternalType\NameObject('MyName'));
+        $arrayObj->add(new InternalType\StringObject('some text'));
         $this->assertEquals($arrayObj->toString(), '[false 100.426 /MyName (some text) ]' );
     }
-    //*/
 
-    /**
-     * @todo \ZendPdf\InternalType\ArrayObject::add() does not exist
-     */
-    /*
     public function testAddBadArgument()
     {
-        $this->setExpectedException(
-            '\ZendPdf\Exception\RuntimeException',
-            'Array elements must be \ZendPdf\InternalType\AbstractTypeObject objects'
-        );
+	    $this->setExpectedException(
+		    '\ZendPdf\Exception\RuntimeException',
+		    'Array elements must be \ZendPdf\InternalType\AbstractTypeObject objects.'
+	    );
 
-        $arrayObj = new ZPDFPDFArray();
+        $arrayObj = new InternalType\ArrayObject();
         $arrayObj->add(100.426);
     }
-    //*/
 }

@@ -54,6 +54,21 @@ class ArrayObject extends AbstractTypeObject
         }
     }
 
+	/**
+	 * Add an element to the array.
+	 *
+	 * @param AbstractTypeObject $value - Element to add to the array.
+	 *
+	 * @throws \ZendPdf\Exception\ExceptionInterface
+	 */
+	public function add( $value )
+	{
+		if ($value instanceof AbstractTypeObject) {
+			$this->items[] = $value;
+		} else {
+			throw new Exception\RuntimeException('Array elements must be \ZendPdf\InternalType\AbstractTypeObject objects.');
+		}
+	}
 
     /**
      * Getter
@@ -70,7 +85,7 @@ class ArrayObject extends AbstractTypeObject
     /**
      * Setter
      *
-     * @param mixed $offset
+     * @param mixed $property
      * @param mixed $value
      * @throws \ZendPdf\Exception\ExceptionInterface
      */
