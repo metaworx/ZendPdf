@@ -40,6 +40,13 @@ class Extracted extends AbstractFont
      */
     protected $_encoding = null;
 
+	/**
+	 * Unicode Conversion Array
+	 *
+	 * @var array
+	 */
+	protected $_toUnicode = null;
+
     /**
      * Object constructor
      *
@@ -71,6 +78,9 @@ class Extracted extends AbstractFont
                 $fontDictionaryIterator->rewind();
                 $descendantFont = $fontDictionaryIterator->current();
                 $fontDescriptor = $descendantFont->FontDescriptor;
+				if ($fontDictionary->ToUnicode) {
+					$this->_toUnicode = $this->_parseUnicodeConversionStream( $fontDictionary->ToUnicode->value );
+				}
                 break;
 
             case 'Type1':
@@ -250,4 +260,164 @@ class Extracted extends AbstractFont
 
         throw new Exception\CorruptedPdfException(self::ENCODING_NOT_SUPPORTED);
     }
+
+	/**
+	 * Test font for unicode conversion support.
+	 *
+	 * @return bool True if extracted font included a unicode conversion stream.
+	 */
+	public function unicodeConversionSupported()
+	{
+		return ($this->_toUnicode !== null);
+	}
+
+	/**
+	 * Get unicode character represented by a given glyph.
+	 *
+	 * @param string $glyph Hexadecimal representation of a glyph.
+	 *
+	 * @return string|null String containing the represented character or null if not found.
+	 */
+	public function unicodeForGlyph( $glyph )
+	{
+		$glyph = strtolower( $glyph );
+
+		if ($this->_toUnicode !== null && isset($this->_toUnicode[ $glyph ])) {
+			return $this->_toUnicode[ $glyph ];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Helper method for parsing extracted unicode conversion stream.
+	 *
+	 * @param string $StreamData
+	 *
+	 * @return array Associated array of glyph codes mapped to unicode characters.
+	 */
+	private static function _parseUnicodeConversionStream( $streamData )
+	{
+		$conversionMap = array();
+		$matches       = array();
+
+		$codeSpaceRange = self::_findStringBetweenMarkers( $streamData, 'begincodespacerange', 'endcodespacerange' );
+
+		if (preg_match_all( '%\s*<(?P<start>[0-9a-fA-F]{4})>\s+<(?P<end>[0-9a-fA-F]{4})>\s*%m',
+		                    $codeSpaceRange,
+		                    $matches,
+		                    PREG_SET_ORDER ) !== false
+		) {
+			foreach ($matches as $match) {
+				$startCharacter = hexdec( $match[ 'start' ] );
+				$endCharacter   = hexdec( $match[ 'end' ] );
+				for ($character = $startCharacter; $character <= $endCharacter; $character++) {
+					$characterCode                   = str_pad( dechex( $character ), 4, "0", STR_PAD_LEFT );
+					$conversionMap[ $characterCode ] = null;
+				}
+			}
+		}
+
+		$BFRange = self::_findStringBetweenMarkers( $streamData, 'beginbfrange', 'endbfrange' );
+
+		if (preg_match_all( '%^\s*<(?P<start>[0-9a-fA-F]{4})>\s+<(?P<end>[0-9a-fA-F]{4})>\s+<(?P<destination>[0-9a-fA-F]{4})>\s*$%m',
+		                    $BFRange,
+		                    $matches,
+		                    PREG_SET_ORDER ) !== false
+		) {
+			foreach ($matches as $match) {
+				$startCharacter = hexdec( $match[ 'start' ] );
+				$endCharacter   = hexdec( $match[ 'end' ] );
+				$destination    = hexdec( $match[ 'destination' ] );
+				for ($character = $startCharacter; $character <= $endCharacter; $character++) {
+					$characterCode                   = str_pad( dechex( $character ), 4, "0", STR_PAD_LEFT );
+					$conversionMap[ $characterCode ] = self::_unicodeForCode( $destination );
+					$destination++;
+				}
+			}
+		}
+
+		$BFChar = self::_findStringBetweenMarkers( $streamData, 'beginbfchar', 'endbfchar' );
+
+		if (preg_match_all( '%^\s*<(?P<source>[0-9a-fA-F]{4})>\s+<(?P<destination>[0-9a-fA-F]{4})>\s*$%m',
+		                    $BFChar,
+		                    $matches, PREG_SET_ORDER ) !== false
+		) {
+			foreach ($matches as $match) {
+				$source      = hexdec( $match[ 'source' ] );
+				$destination = hexdec( $match[ 'destination' ] );
+
+				$characterCode                   = str_pad( dechex( $source ), 4, "0", STR_PAD_LEFT );
+				$conversionMap[ $characterCode ] = self::_unicodeForCode( $destination );
+			}
+		}
+
+		return $conversionMap;
+	}
+
+	/**
+	 * Helper method for extracting a sub-string from a $string.
+	 *
+	 * The search range can either start with a given $startMarker
+	 * or, if the default value of an empty string is supplied,
+	 * start at the beginning of the source $string.
+	 *
+	 * The search range can either end with a given $endMarker or,
+	 * if the default value of an empty string is supplied, end
+	 * at the end of the source $string.
+	 *
+	 * @param string $string      String to search for sub-string
+	 * @param string $startMarker Marker at beginning of sub-string
+	 * @param string $endMarker   Market at end of sub-string.
+	 *
+	 * @return string Text encapsulated by given Markers. Empty string
+	 *                returned if either marker is not found.
+	 */
+	private static function _findStringBetweenMarkers( $string, $startMarker = "", $endMarker = "" )
+	{
+		if ($startMarker != "") {
+			if (strpos( $string, $startMarker ) !== false) {
+				$startPosition = strpos( $string, $startMarker ) + strlen( $startMarker );
+			} else {
+				return "";
+			}
+		} else {
+			$startPosition = 0;
+		}
+		if ($endMarker !== "") {
+			if (strpos( $string, $endMarker, $startPosition ) !== false) {
+				$endPosition = strpos( $string, $endMarker, $startPosition );
+			} else {
+				return "";
+			}
+		} else {
+			$endPosition = strlen( $string );
+		}
+
+		return substr( $string, $startPosition, ($endPosition - $startPosition) );
+	}
+
+	/**
+	 * @param string $unicodeCharacterCode Hexadecimal character code.
+	 *
+	 * @return string Unicode character.
+	 */
+	private static function _unicodeForCode( $unicodeCharacterCode )
+	{
+		return self::_hex2unicode( '\u' . str_pad( dechex( $unicodeCharacterCode ), 4, "0", STR_PAD_LEFT ) );
+	}
+
+	/**
+	 * @param string $hexValue
+	 *
+	 * @return string Unicode
+	 */
+	private static function _hex2unicode( $hexValue )
+	{
+		return preg_replace_callback( '/(?:\\\\u[0-9a-fA-Z]{4})+/', function ( $value ){
+			$value = strtr( $value[ 0 ], array('\\u' => '') );
+
+			return mb_convert_encoding( pack( 'H*', $value ), 'UTF-8', 'UTF-16BE' );
+		}, $hexValue );
+	}
 }
