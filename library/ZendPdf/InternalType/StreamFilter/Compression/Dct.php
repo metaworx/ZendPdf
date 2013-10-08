@@ -76,7 +76,7 @@ class Dct extends AbstractCompression
 		$imagickProcessor->readimageblob( $data );
 
 		if ($params !== NULL && self::_getColorTransformValue( $params )) {
-			$imagickProcessor->setcolorspace(Imagick::COLORSPACE_RGB);
+			$imagickProcessor->setimagecolorspace(Imagick::COLORSPACE_RGB);
 		}
 		$pixelIterator = $imagickProcessor->getpixeliterator();
 
