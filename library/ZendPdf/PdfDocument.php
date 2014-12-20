@@ -780,7 +780,7 @@ class PdfDocument
      * \ZendPdf\Action\AbstractAction object
      *
      * @param \ZendPdf\InternalStructure\NavigationTarget $openAction
-     * @returns Zend_PDF
+     * @return \ZendPdf\PdfDocument
      */
     public function setOpenAction(InternalStructure\NavigationTarget $openAction = null)
     {
