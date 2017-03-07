@@ -265,7 +265,7 @@ class PdfDocument
             if ($this->_trailer->Info !== null) {
                 $this->properties = $this->_trailer->Info->toPhp();
 
-                if (isset($this->properties['Trapped'])) {
+                if (is_array($this->properties) && isset($this->properties['Trapped'])) {
                     switch ($this->properties['Trapped']) {
                         case 'True':
                             $this->properties['Trapped'] = true;
