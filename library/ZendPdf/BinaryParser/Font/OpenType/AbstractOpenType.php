@@ -530,7 +530,7 @@ abstract class AbstractOpenType extends Pdf\BinaryParser\Font\AbstractFont
          * We can understand all four of these table versions.
          */
         $tableVersion = $this->readUInt(2);
-        if (($tableVersion < 0) || ($tableVersion > 3)) {
+        if (($tableVersion < 0) || ($tableVersion > 4)) {
             throw new Exception\CorruptedFontException("Unable to read version $tableVersion table");
         }
         $this->_debugLog('Version %d table', $tableVersion);
