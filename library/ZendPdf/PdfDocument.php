@@ -170,6 +170,15 @@ class PdfDocument
     {
         return $this->_form;
     }
+    
+    /**
+     * Returns the PDF version
+     * @return string
+     */
+    public function getPdfVersion()
+    {
+        return $this->_pdfHeaderVersion;
+    }
 
     /**
      * Request used memory manager
@@ -277,7 +286,7 @@ class PdfDocument
             }
             
             // parse any existing form and fields
-            $this->_form = new AcroFormObject($this->_trailer->Root->AcroForm, $this->_objFactory);
+            $this->_form = new AcroFormObject($this, $this->_trailer->Root->AcroForm, $this->_objFactory);
 
             $this->_loadNamedDestinations($this->_trailer->Root, $this->_parser->getPDFVersion());
             $this->_loadOutlines($this->_trailer->Root);
@@ -329,7 +338,7 @@ class PdfDocument
             $this->_trailer = new Trailer\Generated($trailerDictionary);
             
             // create an empty form
-            $this->_form = new AcroFormObject(null, $this->_objFactory);
+            $this->_form = new AcroFormObject($this, null, $this->_objFactory);
 
             /**
              * Document catalog indirect object.
@@ -554,6 +563,14 @@ class PdfDocument
     protected function _deduplicateFormFields()
     {
         $this->_form->processFormFields();
+    }
+    
+    /**
+     * Find any matching form fields and replace them with read-only text blocks.
+     */
+    protected function _replaceTokens()
+    {
+        $this->_form->replaceTokens($this->pages);
     }
     
     /**
@@ -1232,6 +1249,7 @@ class PdfDocument
         }
 
         $this->_deduplicateFormFields();
+        $this->_replaceTokens();
         $this->_dumpForm();
         $this->_dumpPages();
         $this->_dumpNamedDestinations();
