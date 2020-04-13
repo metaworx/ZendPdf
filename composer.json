@@ -21,11 +21,11 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "zendframework/zend-eventmanager": ">=2.0.0",
-        "zendframework/zend-servicemanager": ">=2.0.0",
-        "zendframework/zend-di": ">=2.0.0",
-        "zendframework/zend-memory": ">=2.0.0",
-        "zendframework/zend-stdlib": ">=2.0.0"
+        "laminas/laminas-eventmanager": ">=2.0.0",
+        "laminas/laminas-servicemanager": ">=2.0.0",
+        "laminas/laminas-di": ">=2.0.0",
+        "laminas/laminas-memory": ">=2.0.0",
+        "laminas/laminas-stdlib": ">=2.0.0"
     },
     "extra": {
         "branch-alias": {
