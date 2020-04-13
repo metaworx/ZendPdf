@@ -194,6 +194,11 @@ class StreamObject extends IndirectObject
                                                               $this->_initialDictionaryData['DecodeParms'][$id]);
                     break;
 
+	            case 'DCTDecode':
+		            $valueRef = CompressionFilter\Dct::decode( $valueRef,
+		                                                       $this->_initialDictionaryData[ 'DecodeParms' ][ $id ] );
+		            break;
+
                 case 'RunLengthDecode':
                     $valueRef = StreamFilter\RunLength::decode($valueRef);
                     break;
