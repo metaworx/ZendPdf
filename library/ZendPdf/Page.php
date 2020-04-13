@@ -164,6 +164,11 @@ class Page
      */
     protected $_fontSize;
 
+	/**
+	 * @var float
+	 */
+	protected $_characterSpacing = 0.0;
+
     /**
      * Object constructor.
      * Constructor signatures:
@@ -663,6 +668,15 @@ class Page
         return $this;
     }
 
+	/**
+	 * Sets the character spacing.
+	 *
+	 * @param float $characterSpacing
+	 */
+	public function setCharacterSpacing($characterSpacing) {
+		$this->_characterSpacing = $characterSpacing;
+	}
+
     /**
      * Set the transparancy
      *
@@ -859,6 +873,15 @@ class Page
     {
         return $this->_fontSize;
     }
+
+	/**
+	 * Gets the character spacing.
+	 *
+	 * @return float
+	 */
+	public function getCharacterSpacing() {
+		return $this->_characterSpacing;
+	}
 
     /**
      * Return the style, applied to the page.
@@ -1316,6 +1339,19 @@ class Page
     {
         $simpleText = new SimpleText($text,$charEncoding);
         $this->draw($x, $y, $simpleText);
+
+        $this->_addProcSet('Text');
+
+        $textObj = new InternalType\StringObject($this->_font->encodeString($text, $charEncoding));
+        $xObj    = new InternalType\NumericObject($x);
+        $yObj    = new InternalType\NumericObject($y);
+		$tcObj   = new InternalType\NumericObject($this->_characterSpacing);
+
+        $this->_contents .= "BT\n"
+                         .  $tcObj->toString() . " Tc\n"
+                         .  $xObj->toString() . ' ' . $yObj->toString() . " Td\n"
+                         .  $textObj->toString() . " Tj\n"
+                         .  "ET\n";
 
         return $this;
     }

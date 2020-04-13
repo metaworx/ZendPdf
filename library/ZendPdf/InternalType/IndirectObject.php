@@ -206,7 +206,7 @@ class IndirectObject extends AbstractTypeObject
      * @param \ZendPdf\ObjectFactory $factory  The factory to attach
      * @param array &$processed  List of already processed indirect objects, used to avoid objects duplication
      * @param integer $mode  Cloning mode (defines filter for objects cloning)
-     * @returns \ZendPdf\InternalType\AbstractTypeObject
+     * @return \ZendPdf\InternalType\AbstractTypeObject
      */
     public function makeClone(ObjectFactory $factory, array &$processed, $mode)
     {
