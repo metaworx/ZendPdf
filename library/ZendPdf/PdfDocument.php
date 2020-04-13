@@ -1283,6 +1283,7 @@ class PdfDocument
                                 throw new Exception\LogicException('Wrong Trapped document property vale: \'' . $value . '\'. Only true, false and null values are allowed.');
                                 break;
                         }
+                        break;
 
                     case 'CreationDate':
                         // break intentionally omitted
@@ -1302,9 +1303,9 @@ class PdfDocument
                         // break intentionally omitted
                     case 'Producer':
                         if (extension_loaded('mbstring') === true) {
-                            $detected = mb_detect_encoding($value);
-                            if ($detected !== 'ASCII') {
-                                $value = chr(254) . chr(255) . mb_convert_encoding($value, 'UTF-16', $detected);
+                            $detected = Util\Encoding::detect_utf_encoding($value);
+                            if ($detected !== 'ASCII' && $detected !== 'UTF-16BE') {
+                                $value = mb_convert_encoding($value, 'UTF-16BE', $detected);
                             }
                         }
                         $docInfo->$key = new InternalType\StringObject((string)$value);

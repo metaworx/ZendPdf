@@ -25,7 +25,8 @@
         "laminas/laminas-servicemanager": ">=2.0.0",
         "laminas/laminas-di": ">=2.0.0",
         "laminas/laminas-memory": ">=2.0.0",
-        "laminas/laminas-stdlib": ">=2.0.0"
+        "laminas/laminas-stdlib": ">=2.0.0",
+        "ext-mbstring": "*"
     },
     "extra": {
         "branch-alias": {
