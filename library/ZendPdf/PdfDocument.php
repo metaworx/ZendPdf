@@ -12,6 +12,7 @@ namespace ZendPdf;
 
 use Zend\Memory;
 use ZendPdf\Exception;
+use ZendPdf\InternalType\IndirectObjectReference;
 
 /**
  * General entity which describes PDF document.
@@ -155,6 +156,13 @@ class PdfDocument
     protected static $_inheritableAttributes = array('Resources', 'MediaBox', 'CropBox', 'Rotate');
 
     /**
+     * List of form fields
+     *
+     * @var array - Associative array, key: name of form field, value: Zend_Pdf_Element
+     */
+    protected $_formFields = array();
+
+    /**
      * Request used memory manager
      *
      * @return Zend\Memory\MemoryManager
@@ -233,7 +241,6 @@ class PdfDocument
      *
      * If $source is a string and $load is true, then it loads document
      * from a file.
-
      * $revision used to roll back document to specified version
      * (0 - currtent version, 1 - previous version, 2 - ...)
      *
@@ -261,6 +268,7 @@ class PdfDocument
 
             $this->_loadNamedDestinations($this->_trailer->Root, $this->_parser->getPDFVersion());
             $this->_loadOutlines($this->_trailer->Root);
+            $this->_loadFormfields($this->_trailer->Root);
 
             if ($this->_trailer->Info !== null) {
                 $this->properties = $this->_trailer->Info->toPhp();
@@ -325,6 +333,65 @@ class PdfDocument
             $docPages->Count = new InternalType\NumericObject(0);
             $docCatalog->Pages = $docPages;
         }
+    }
+
+
+    
+    /**
+     * Load form fields
+     * Populates the _formFields array, for later lookup of fields by name
+     *
+     * @param ZendPdf\InternalType\IndirectObjectReference $root Document catalog entry
+     */
+    protected function _loadFormFields(IndirectObjectReference $root)
+    {
+      if ($root->AcroForm === null || $root->AcroForm->Fields === null) {
+        return;
+      }
+      
+      foreach ($root->AcroForm->Fields->items as $field)
+      {
+          if ( $field->FT->value == 'Tx' && $field->T !== null ) /* We only support fields that are textfields and have a name */
+          {
+            $this->_formFields[$field->T->value] = $field;
+          }
+      }
+      
+      if ( !$root->AcroForm->NeedAppearances || !$root->AcroForm->NeedAppearances->value )
+      {
+        /* Ask the .pdf viewer to generate its own appearance data, so we do not have to */
+        $root->AcroForm->add(new InternalType\NameObject('NeedAppearances'), new InternalType\BooleanObject(true) );
+        //$root->AcroForm->touch();
+      }
+    }
+    
+    /**
+     * Retrieves a list with the names of the AcroForm textfields in the PDF
+     *
+     * @return array of strings
+     */
+    public function getTextFieldNames()
+    {
+      return array_keys($this->_formFields);
+    }
+    
+    /**
+     * Sets the value of an AcroForm text field
+     *
+     * @param string $name Name of textfield
+     * @param string $value Value
+     * @throws \Exception if the textfield does not exist in the pdf
+     */
+    public function setTextField($name, $value)
+    {
+
+      if ( !isset($this->_formFields[$name]))
+        throw new \Exception("Field '$name' does not exist or is not a textfield");
+      
+      $field = $this->_formFields[$name];
+      $stringObj = new InternalType\StringObject($value);
+      $field->add(new InternalType\NameObject('V'), $stringObj);;
+      $field->touch();      
     }
 
     /**
